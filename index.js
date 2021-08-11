@@ -5,6 +5,8 @@ const User = require("./models/user");
 const bcrypt = require("bcrypt");
 const session = require("express-session")
 
+
+
 mongoose.connect('mongodb://localhost:27017/test', { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => {
         console.log("Mongo connection open!")
@@ -63,15 +65,23 @@ app.post("/login", async (req, res) => {
     }
 })
 
+//logout rout 
+app.post("/logout", (req, res) =>{
+    req.session.user_id = null;
+    //req.session.destroy(); //another option
+    res.redirect("/login")
+})
+
 // lets protect this route 
 app.get("/secret", (req, res) => {
     if (!req.session.user_id) {
-        res.redirect("/login")
+        return res.redirect("/login")
     } else {
-        res.send("this is secret, you need to login to see me")
+        res.render("secret")
     }
 
 })
+
 
 
 app.listen(3000, () => {
