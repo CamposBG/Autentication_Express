@@ -2,7 +2,7 @@
 Basic Authentication using JS and Express
 
 # Bcrypt for Auth
-## [Installing](https://www.npmjs.com/package/bcryptjs)
+## [Installing](https://www.npmjs.com/package/bcrypt)
 ```sh
 npm i bcryptjs
 ```

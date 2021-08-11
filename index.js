@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const app = express();
 const User = require("./models/user");
 const bcrypt = require("bcrypt");
+const session = require("express-session")
 
 mongoose.connect('mongodb://localhost:27017/test', { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => {
@@ -18,6 +19,9 @@ app.set("views", "views")
 
 //parsing the req.body
 app.use(express.urlencoded({ extended: true }));
+
+//using session to stay logged in 
+app.use(session({ secret: "notagoodsecret" })) // secret should be stored safely 
 
 //basic routes
 app.get("/", (req, res) => {
@@ -37,6 +41,7 @@ app.post("/register", async (req, res) => {
         password: hash
     })
     await user.save();
+    req.session.user_id = user.user_id;
     res.redirect("/")
 })
 
@@ -51,14 +56,21 @@ app.post("/login", async (req, res) => {
     //compare the passwords
     const validPassword = await bcrypt.compare(password, user.password)
     if (validPassword) {
-        res.send("Welcome")
+        req.session.user_id = user._id; // if the user successfully login we gonna store it's id in the session to keep the user logged in
+        res.redirect("/secret")
     } else {
         res.send("Try again")
     }
 })
 
+// lets protect this route 
 app.get("/secret", (req, res) => {
-    res.send("this is secret, you need to login to see me")
+    if (!req.session.user_id) {
+        res.redirect("/login")
+    } else {
+        res.send("this is secret, you need to login to see me")
+    }
+
 })
 
 
