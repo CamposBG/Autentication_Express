@@ -20,7 +20,7 @@ app.set("views", "views")
 app.use(express.urlencoded({ extended: true }));
 
 //basic routes
-app.get("/", (req, res)=> {
+app.get("/", (req, res) => {
     res.send("This is the home page")
 })
 
@@ -30,7 +30,7 @@ app.get("/register", (req, res) => {
 
 //rout to submit the form
 app.post("/register", async (req, res) => {
-    const {password, username} = req.body;
+    const { password, username } = req.body;
     const hash = await bcrypt.hash(password, 12);
     const user = new User({
         username,
@@ -38,6 +38,23 @@ app.post("/register", async (req, res) => {
     })
     await user.save();
     res.redirect("/")
+})
+
+// login routes
+app.get("/login", (req, res) => {
+    res.render("login")
+})
+app.post("/login", async (req, res) => {
+    const { username, password } = req.body;
+    //find the user on the DB
+    const user = await User.findOne({ username });
+    //compare the passwords
+    const validPassword = await bcrypt.compare(password, user.password)
+    if (validPassword) {
+        res.send("Welcome")
+    } else {
+        res.send("Try again")
+    }
 })
 
 app.get("/secret", (req, res) => {
@@ -48,3 +65,4 @@ app.get("/secret", (req, res) => {
 app.listen(3000, () => {
     console.log("SERVING ON PORT 3000")
 })
+
