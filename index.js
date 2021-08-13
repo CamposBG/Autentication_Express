@@ -5,8 +5,6 @@ const User = require("./models/user");
 const bcrypt = require("bcrypt");
 const session = require("express-session")
 
-
-
 mongoose.connect('mongodb://localhost:27017/test', { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => {
         console.log("Mongo connection open!")
@@ -24,6 +22,14 @@ app.use(express.urlencoded({ extended: true }));
 
 //using session to stay logged in 
 app.use(session({ secret: "notagoodsecret" })) // secret should be stored safely 
+
+// middleware to check if the user is logged 
+const requireLogin = (req, res, next) => {
+    if (!req.session.user_id) {
+        return res.redirect("/login")
+    }
+    next();
+}
 
 //basic routes
 app.get("/", (req, res) => {
@@ -66,23 +72,16 @@ app.post("/login", async (req, res) => {
 })
 
 //logout rout 
-app.post("/logout", (req, res) =>{
+app.post("/logout", (req, res) => {
     req.session.user_id = null;
     //req.session.destroy(); //another option
     res.redirect("/login")
 })
 
-// lets protect this route 
-app.get("/secret", (req, res) => {
-    if (!req.session.user_id) {
-        return res.redirect("/login")
-    } else {
-        res.render("secret")
-    }
-
+// to protect this route I just need to add the middleware requireLogin
+app.get("/secret", requireLogin, (req, res) => {
+    res.render("secret")
 })
-
-
 
 app.listen(3000, () => {
     console.log("SERVING ON PORT 3000")
