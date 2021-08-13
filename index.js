@@ -43,11 +43,7 @@ app.get("/register", (req, res) => {
 //rout to submit the form
 app.post("/register", async (req, res) => {
     const { password, username } = req.body;
-    const hash = await bcrypt.hash(password, 12);
-    const user = new User({
-        username,
-        password: hash
-    })
+    const user = new User({ username, password })
     await user.save();
     req.session.user_id = user.user_id;
     res.redirect("/")
@@ -59,15 +55,12 @@ app.get("/login", (req, res) => {
 })
 app.post("/login", async (req, res) => {
     const { username, password } = req.body;
-    //find the user on the DB
-    const user = await User.findOne({ username });
-    //compare the passwords
-    const validPassword = await bcrypt.compare(password, user.password)
-    if (validPassword) {
-        req.session.user_id = user._id; // if the user successfully login we gonna store it's id in the session to keep the user logged in
+    const foundUser = await User.findAndValidate(username, password)
+    if (foundUser) {
+        req.session.user_id = foundUser._id; // if the user successfully login we gonna store it's id in the session to keep the user logged in
         res.redirect("/secret")
     } else {
-        res.send("Try again")
+        res.redirect("/login")
     }
 })
 
@@ -87,4 +80,4 @@ app.listen(3000, () => {
     console.log("SERVING ON PORT 3000")
 })
 
-//teste 
+//teste 2
